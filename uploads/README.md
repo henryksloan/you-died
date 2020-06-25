@@ -1,0 +1,1 @@
+This folder holds the uploaded and modified gifs
