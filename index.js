@@ -1,6 +1,7 @@
 const express = require('express')
 const formidable = require('formidable');
-const path = require('path')
+const path = require('path');
+const fs = require('fs');
 
 const { execFile } = require('child_process');
 const gifsicle = require('gifsicle');
@@ -22,21 +23,22 @@ express()
               return;
           }
           console.log(files);
-          execFile(gifsicle, ['--resize'], err => {
+          execFile(gifsicle, ['--resize', '498x280', files.gifInput.path, '-o', files.gifInput.path + '.resized.gif'], err => {
               console.log(err);
-          });
-          execFile(gifsicle, ['--resize', '498x280', files.someExpressFiles.path, '-o', files.someExpressFiles.path + '.cropped.gif'], err => {
-              console.log(err);
-              console.log('Image cropped!');
-              execFile(gifsicle, ['--merge', files.someExpressFiles.path + '.cropped.gif', 'awake.gif', '-o', files.someExpressFiles.path + '.merged.gif'], err => {
+              console.log('Image resized!');
+              execFile(gifsicle, ['--merge', files.gifInput.path + '.resized.gif', 'awake.gif', '-o', files.gifInput.path + '.merged.gif'], err => {
                   console.log(err);
                   console.log('Images merged!');
-                  // res.redirect('/download/' + files.someExpressFiles.path.split(__dirname + "\\uploads\\")[1]+'.merged.gif');
-                  res.redirect('/download/' + path.basename(files.someExpressFiles.path) + '.merged.gif');
+                  fs.unlink(files.gifInput.path, (err) => {
+                      if (err) { console.error(err); }
+                  });
+
+                  fs.unlink(files.gifInput.path + '.resized.gif', (err) => {
+                      if (err) { console.error(err); }
+                  });
+                  res.redirect('/download/' + path.basename(files.gifInput.path) + '.merged.gif');
               });
           });
-          // res.send(`<img src="${files.someExpressFiles.path.split(__dirname)[1]}" alt="image"/>`);
-          // res.json({fields, files});
       });
   })
   .get('/download/:file', (req, res) => {
