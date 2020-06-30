@@ -1,4 +1,5 @@
-const express = require('express')
+const express = require('express');
+const rateLimit = require("express-rate-limit");
 const formidable = require('formidable');
 const path = require('path');
 const fs = require('fs');
@@ -6,37 +7,96 @@ const fs = require('fs');
 const { execFile } = require('child_process');
 const gifsicle = require('gifsicle');
 
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 5000;
 
-express()
+function deleteIfFound(filename) {
+    if (fs.existsSync(filename)) {
+        fs.unlink(filename, (err) => {
+            if (err) { console.error(err); }
+        });
+    }
+}
+
+function trimExtension(filename) {
+    return filename.replace(/\.[^/.]+$/, "");
+}
+
+function resizedName(filename) {
+    return trimExtension(filename) + "_resized.gif";
+}
+
+function mergedName(filename) {
+    return trimExtension(filename) + "_merged.gif";
+}
+
+function resizeCmd(filename) {
+    return ['--resize', '498x280', filename,
+            '-o', resizedName(filename)];
+}
+
+function mergeCmd(filename) {
+    return ['--merge', resizedName(filename), 'awake.gif',
+            '-o', mergedName(filename)]
+}
+
+app = express();
+
+if (app.get('env') === 'production') {
+    app.set('trust proxy', 1);
+}
+
+const uploadLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 5,
+    message: "Uploading too fast"
+});
+
+app
   .use(express.static(path.join(__dirname, 'public')))
   .set('views', path.join(__dirname, 'views'))
   .set('view engine', 'ejs')
   .get('/', (req, res) => res.render('pages/index'))
-  .get('/test', (req, res) => res.render('pages/test'))
-  .post('/api/upload', (req, res, next) => {
-      const form = formidable({uploadDir: __dirname + '/uploads', keepExtensions: true});
+  .post('/api/upload', uploadLimiter, (req, res, next) => {
+      const form = formidable({
+          uploadDir: __dirname + '/uploads',
+          keepExtensions: true,
+          maxFileSize: 35 * 1024 * 1024 // 35mb
+      });
 
       form.parse(req, (err, fields, files) => {
           if (err) {
               next(err);
               return;
           }
-          console.log(files);
-          execFile(gifsicle, ['--resize', '498x280', files.gifInput.path, '-o', files.gifInput.path + '.resized.gif'], err => {
-              console.log(err);
-              console.log('Image resized!');
-              execFile(gifsicle, ['--merge', files.gifInput.path + '.resized.gif', 'awake.gif', '-o', files.gifInput.path + '.merged.gif'], err => {
-                  console.log(err);
-                  console.log('Images merged!');
-                  fs.unlink(files.gifInput.path, (err) => {
-                      if (err) { console.error(err); }
-                  });
 
-                  fs.unlink(files.gifInput.path + '.resized.gif', (err) => {
-                      if (err) { console.error(err); }
-                  });
-                  res.redirect('/download/' + path.basename(files.gifInput.path) + '.merged.gif');
+          let cancelled = false;
+          req.on("close", function() {
+              cancelled = true;
+          });
+
+          let filename = files.gifInput.path;
+          execFile(gifsicle, resizeCmd(filename), err => {
+              if (err) {
+                  console.log(err);
+                  return;
+              }
+              else if (cancelled) {
+                  deleteIfFound(filename);
+                  deleteIfFound(resizedName(filename));
+                  return;
+              }
+
+              console.log('Image resized!');
+              execFile(gifsicle, mergeCmd(filename), err => {
+                  deleteIfFound(filename);
+                  deleteIfFound(resizedName(filename));
+
+                  if (err) { console.log(err); }
+                  else if (cancelled) { deleteIfFound(mergedName(filename)); }
+                  else {
+                      console.log('Images merged!');
+                      res.redirect('/download/' + path.basename(mergedName(filename)));
+                  }
               });
           });
       });
