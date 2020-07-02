@@ -9,6 +9,11 @@ const gifsicle = require('gifsicle');
 
 const PORT = process.env.PORT || 5000;
 
+const MEME_FILES = {
+    "youDied": "you_died.gif",
+    "awake": "awake.gif"
+};
+
 function deleteIfFound(filename) {
     if (fs.existsSync(filename)) {
         fs.unlink(filename, (err) => {
@@ -34,8 +39,8 @@ function resizeCmd(filename) {
             '-o', resizedName(filename)];
 }
 
-function mergeCmd(filename) {
-    return ['--merge', resizedName(filename), 'awake.gif',
+function mergeCmd(filename, memeType) {
+    return ['--merge', resizedName(filename), MEME_FILES[memeType],
             '-o', mergedName(filename)]
 }
 
@@ -69,12 +74,20 @@ app
               return;
           }
 
+          let filename = files.gifInput.path;
+          let memeType = fields.memeType;
+          if (!(memeType in MEME_FILES)) {
+              deleteIfFound(filename);
+              return res.status(400).send({
+                  message: "Invalid meme type " + memeType
+              });
+          }
+
           let cancelled = false;
           req.on("close", function() {
               cancelled = true;
           });
 
-          let filename = files.gifInput.path;
           execFile(gifsicle, resizeCmd(filename), err => {
               if (err) {
                   console.log(err);
@@ -87,7 +100,7 @@ app
               }
 
               console.log('Image resized!');
-              execFile(gifsicle, mergeCmd(filename), err => {
+              execFile(gifsicle, mergeCmd(filename, memeType), err => {
                   deleteIfFound(filename);
                   deleteIfFound(resizedName(filename));
 
