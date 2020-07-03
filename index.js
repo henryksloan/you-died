@@ -65,7 +65,7 @@ app
       const form = formidable({
           uploadDir: __dirname + '/uploads',
           keepExtensions: true, // TODO: this can be false (default) if I get rid of extension trimming
-          maxFileSize: 35 * 1024 * 1024 // 35mb
+          maxFileSize: 35 * 1024 * 1024 // 35MB
       });
 
       form.parse(req, (err, fields, files) => {
