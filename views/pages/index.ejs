@@ -2,31 +2,65 @@
 <html>
 <head>
     <title>Test!!!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+          integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/stylesheets/main.css" />
     <script type="text/javascript">
         $(document).ready(function () {
-            $("#file-form").submit(function () {
-                $("#file-submit").attr("disabled", true);
+            $('#file-form').submit(function () {
+                $('#file-submit').attr("disabled", true);
                 return true;
+            });
+
+            $(".custom-file-input").on("change", function() {
+                let fileName = $(this).val().split("\\").pop();
+                if (this.files[0] && this.files[0].type !== "image/gif") {
+                    alert("File must be a gif.");
+                    this.value = "";
+                    fileName = "";
+                }
+                else if (this.files[0] && this.files[0].size > (35 * 1024 * 1024)) {
+                    alert("File too large! Max is 35MB.");
+                    this.value = "";
+                    fileName = "";
+                }
+
+                if (fileName === "") fileName = "Choose your gif";
+                $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
             });
         });
     </script>
 </head>
 
 <body>
-<h2>With <code>"express"</code> npm package</h2>
-<form id="file-form" action="/api/upload" enctype="multipart/form-data" method="post">
-    <div>File: <input type="file" name="gifInput" accept=".gif" /></div>
-    <div>
-        <label for="memeType">Select meme to add:</label>
-        <select name="memeType" id="memeType">
-            <option value="youDied">You died</option>
-            <option value="awake">You're finally awake</option>
-        </select>
-    </div>
-    <input id="file-submit" type="submit" value="Upload" />
-    <p>TODO: Filename input and 8mb discord output option</p>
-</form>
+<div class="jumbotron text-center">
+    <h1>You Died Meme Generator</h1>
+    <p>Choose a gif and make it into a meme!</p>
+</div>
+
+<div class="text-center col-md-8 mx-auto">
+    <form id="file-form" action="/api/upload" enctype="multipart/form-data" method="post">
+        <div class="custom-file file col-md-6">
+            <label class="custom-file-label" for="file-input">Choose your gif</label>
+            <input class="custom-file-input" id="file-input" type="file" name="gifInput" accept=".gif" required />
+        </div>
+
+        <div class="meme-selector">
+            <div>
+                <input id="youDied" type="radio" name="memeType" value="youDied" required />
+                <label class="thumb you-died-thumb" for="youDied"></label>
+            </div>
+            <div>
+                <input id="awake" type="radio" name="memeType" value="awake" required />
+                <label class="thumb awake-thumb" for="awake"></label>
+            </div>
+        </div>
+        <input class="btn btn-primary" id="file-submit" type="submit" value="Upload" />
+        <!-- p>TODO: Filename input and 8mb discord output option</p !-->
+    </form>
+</div>
 </body>
 
 </html>

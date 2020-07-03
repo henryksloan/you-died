@@ -10,8 +10,8 @@ const gifsicle = require('gifsicle');
 const PORT = process.env.PORT || 5000;
 
 const MEME_FILES = {
-    "youDied": "you_died.gif",
-    "awake": "awake.gif"
+    "youDied": "assets/you_died.gif",
+    "awake": "assets/awake.gif"
 };
 
 function deleteIfFound(filename) {
@@ -64,8 +64,8 @@ app
   .post('/api/upload', uploadLimiter, (req, res, next) => {
       const form = formidable({
           uploadDir: __dirname + '/uploads',
-          keepExtensions: true,
-          maxFileSize: 35 * 1024 * 1024 // 35mb
+          keepExtensions: true, // TODO: this can be false (default) if I get rid of extension trimming
+          maxFileSize: 35 * 1024 * 1024 // 35MB
       });
 
       form.parse(req, (err, fields, files) => {
@@ -76,10 +76,18 @@ app
 
           let filename = files.gifInput.path;
           let memeType = fields.memeType;
+
           if (!(memeType in MEME_FILES)) {
               deleteIfFound(filename);
               return res.status(400).send({
                   message: "Invalid meme type " + memeType
+              });
+          }
+
+          if (files.gifInput.type !== 'image/gif') {
+              deleteIfFound(filename);
+              return res.status(400).send({
+                  message: "Invalid file type " + files.gifInput.type
               });
           }
 

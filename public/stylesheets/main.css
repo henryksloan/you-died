@@ -1,27 +1,58 @@
-.jumbotron {
-  background: #532F8C;
-  color: white;
-  padding-bottom: 80px; }
-  .jumbotron .btn-primary {
-    background: #845ac7;
-    border-color: #845ac7; }
-    .jumbotron .btn-primary:hover {
-      background: #7646c1; }
-  .jumbotron p {
-    color: #d9ccee;
-    max-width: 75%;
-    margin: 1em auto 2em; }
-  .navbar + .jumbotron {
-    margin-top: -20px; }
-  .jumbotron .lang-logo {
-    display: block;
-    background: #B01302;
-    border-radius: 50%;
-    overflow: hidden;
-    width: 100px;
-    height: 100px;
-    margin: auto;
-    border: 2px solid white; }
-    .jumbotron .lang-logo img {
-      max-width: 100%; }
+.custom-file {
+    max-width: 420px;
+}
 
+.jumbotron {
+    background-color: #6d1c1c;
+    color: white;
+}
+
+/* http://jsfiddle.net/zf32xrmh/1/ */
+.meme-selector input{
+    position:absolute;
+    z-index:999;
+    margin: 22px 14px;
+}
+
+.you-died-thumb {
+    background-image: url("/thumbnails/you_died_thumb.png");
+}
+.awake-thumb {
+    background-image: url("/thumbnails/awake_thumb.png");
+}
+
+.meme-selector input:active +.thumb {
+    opacity: .9;
+}
+
+.meme-selector input:checked +.thumb {
+    -webkit-filter: none;
+    -moz-filter: none;
+    filter: none;
+}
+
+.meme-selector>div {
+    display: inline-block;
+}
+
+.thumb {
+    cursor: pointer;
+    background-size: contain;
+    background-repeat: no-repeat;
+    display: inline-block;
+    width: 180px;
+    height: 180px;
+    -webkit-transition: all 100ms ease-in;
+    -moz-transition: all 100ms ease-in;
+    transition: all 100ms ease-in;
+    -webkit-filter: brightness(1.2) grayscale(1) opacity(.7);
+    -moz-filter: brightness(1.2) grayscale(1) opacity(.7);
+    filter: brightness(1.2) grayscale(1) opacity(.7);
+    margin: 16px 4px 4px 8px;
+}
+
+.thumb:hover {
+    -webkit-filter: brightness(1.2) grayscale(.5) opacity(.9);
+    -moz-filter: brightness(1.2) grayscale(.5) opacity(.9);
+    filter: brightness(1.2) grayscale(.5) opacity(.9);
+}
