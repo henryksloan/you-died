@@ -10,8 +10,8 @@ const gifsicle = require('gifsicle');
 const PORT = process.env.PORT || 5000;
 
 const MEME_FILES = {
-    "youDied": "you_died.gif",
-    "awake": "awake.gif"
+    "youDied": "assets/you_died.gif",
+    "awake": "assets/awake.gif"
 };
 
 function deleteIfFound(filename) {
