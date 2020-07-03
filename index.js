@@ -64,9 +64,37 @@ app
   .post('/api/upload', uploadLimiter, (req, res, next) => {
       const form = formidable({
           uploadDir: __dirname + '/uploads',
-          keepExtensions: true,
+          keepExtensions: true, // TODO: this can be false (default) if I get rid of extension trimming
           maxFileSize: 35 * 1024 * 1024 // 35mb
       });
+
+      /* let invalid = false;
+      form.onPart = (part) => {
+          if (part.filename) {
+              if (part.mime !== "image/gif") {
+                  invalid = true;
+                  return res.status(400).send({
+                      message: "Invalid mime type " + part.mime
+                  });
+              }
+          }
+          console.log("Part: ", part);
+          form.handlePart(part);
+      };
+
+      if (invalid) return; */
+
+      /* let invalid = false;
+      form.on('fileBegin', (filename, file) => {
+          console.log("File:", filename, file);
+          if (file.type !== "image/gif") {
+              res.status(400).send({
+                  message: "Invalid file type " + file.type
+              });
+              invalid = true;
+          }
+      });
+      if (invalid) return; */
 
       form.parse(req, (err, fields, files) => {
           if (err) {
@@ -76,10 +104,18 @@ app
 
           let filename = files.gifInput.path;
           let memeType = fields.memeType;
+
           if (!(memeType in MEME_FILES)) {
               deleteIfFound(filename);
               return res.status(400).send({
                   message: "Invalid meme type " + memeType
+              });
+          }
+
+          if (files.gifInput.type !== 'image/gif') {
+              deleteIfFound(filename);
+              return res.status(400).send({
+                  message: "Invalid file type " + files.gifInput.type
               });
           }
 
