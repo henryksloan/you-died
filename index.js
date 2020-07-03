@@ -68,34 +68,6 @@ app
           maxFileSize: 35 * 1024 * 1024 // 35mb
       });
 
-      /* let invalid = false;
-      form.onPart = (part) => {
-          if (part.filename) {
-              if (part.mime !== "image/gif") {
-                  invalid = true;
-                  return res.status(400).send({
-                      message: "Invalid mime type " + part.mime
-                  });
-              }
-          }
-          console.log("Part: ", part);
-          form.handlePart(part);
-      };
-
-      if (invalid) return; */
-
-      /* let invalid = false;
-      form.on('fileBegin', (filename, file) => {
-          console.log("File:", filename, file);
-          if (file.type !== "image/gif") {
-              res.status(400).send({
-                  message: "Invalid file type " + file.type
-              });
-              invalid = true;
-          }
-      });
-      if (invalid) return; */
-
       form.parse(req, (err, fields, files) => {
           if (err) {
               next(err);
